@@ -27,6 +27,10 @@ prod_*.csv
 company_*.xlsx
 prod_*.xlsx
 
+# Legacy single-app (superseded by app_employee.py and app_management.py)
+scripts/app.py
+scripts/myscript.py
+
 # Ignore presentations (may contain company/personal metadata)
 *.pptx
 *.ppt
