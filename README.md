@@ -1,189 +1,108 @@
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+﻿![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## Overview
-The **Skills Visualiser App** is an internal tool prototype built in **Python** with **Streamlit** and **SQLite**.  
-It allows colleagues to:
-- Add/update their skills with ratings for theoretical knowledge, practical experience, and interest.  
-- Preserve a history of changes for auditability.  
-- Generate company-wide skill reports (CSV, Excel, PNG visualisations).  
+# HR Skills Visualiser
 
-A **synthetic demo dataset** (`skills_demo.db`) is generated automatically by the installer using Faker. No personal data is stored.  
+A small internal tool built to solve a specific problem: nobody in the team had a clear picture of who knew what, or how that was changing over time. This app lets colleagues self-assess their skills across three dimensions (theoretical knowledge, practical experience, and interest in developing further), stores the history of every change, and gives management a way to spot gaps and plan training.
+
+Built with Python, Streamlit, and SQLite. The demo database is generated with Faker — no real data in this repo.
 
 ---
 
-## Why This Matters
-Teams often struggle to keep track of colleagues’ skills in a structured, version-controlled way.  
-This app demonstrates how lightweight internal tools can solve that by:
-- Allowing colleagues to self-assess skills and keep them up-to-date.  
-- Preserving **history of changes**, so managers can see growth over time.  
-- Providing **company-wide reporting** that supports resource allocation, training decisions, and project staffing.  
-- Showing how Python, Streamlit, and SQLite can be combined to quickly prototype useful internal systems.  
+## Architecture
 
-Although this repo uses demo data, the same approach could scale to PostgreSQL or integrate with enterprise tools like Power BI or HR systems.
+The front-end is split into two Streamlit apps to keep personal data away from those who shouldn't see it:
 
----
-
-### **Streamlit Frontend**
-Split into two separate apps — see [App Architecture](#app-architecture--data-protection-split) below.
-
-### **SQLite Backend**
-- `Person`: unique users.  
-- `SkillAssessment`: current skill ratings.  
-- `SkillHistory`: all changes with timestamps for audit trail.  
-
-### **Reporting Script** (`query_skills.py`)
-- Uses environment config (`.env`) to select DB (`skills_demo.db` or `prod_skills.db`).  
-- Handles **empty DBs gracefully** (no crashes if no data).  
-- Generates:  
-  - Excel + CSV reports.  
-  - Bar charts of skill strengths.  
-  - Static seaborn heatmaps (with headcounts in each cell).  
-  - Interactive Plotly heatmaps (hover to see contributors).  
-- Applies `prod_` prefix to output files when using `prod_skills.db`.
-
-### **Demo Data Generator** (`make_demo_db.py`)
-- Creates `skills_demo.db` with 20 fake users and 2–4 random skills each.  
-- Populates **SkillAssessment** and **SkillHistory** with random values.  
-- Ensures the app runs out-of-the-box with synthetic data.
-
----
-
-## App Architecture — Data Protection Split
-
-The Streamlit front-end is split into **two separate apps** to keep personal data away from employees who should not see it:
-
-| App | Script | Launcher | Default port | Who uses it |
-|-----|--------|----------|-------------|-------------|
-| **Employee app** | `scripts/app_employee.py` | `run_employee_app.cmd` | 8501 | All employees |
-| **Management app** | `scripts/app_management.py` | `run_management_app.cmd` | 8502 | HR / managers only |
+| App | Script | Launcher | Port | Who uses it |
+|-----|--------|----------|------|-------------|
+| Employee app | `scripts/app_employee.py` | `run_employee_app.cmd` | 8501 | All staff |
+| Management app | `scripts/app_management.py` | `run_management_app.cmd` | 8502 | HR / managers only |
 
 ### Employee app tabs
 - **Home** – register / confirm email
-- **My Skills** – view *your own* skill profile only
-- **My Progression** – track how *your own* skills have changed over time
+- **My Skills** – your current skill profile
+- **My Progression** – line chart of how your ratings have changed over time
 - **Add / Update Skills** – log or update a skill entry
 
 ### Management app tabs
-- **Management** – individual breakdown of every person's self-assessed values
-- **Analytics** – aggregated company-wide charts, gap analysis, and export to Excel/CSV
-- **Admin** – delete skill entries (maintenance)
+- **Management** – filterable table of every person's self-assessed values
+- **Analytics** – aggregated charts, knowledge gap analysis (theoretical − practical), export to CSV/Excel
+- **Admin** – delete individual skill entries
 
-### Shared infrastructure
-`scripts/app_common.py` contains the DB connection, environment/path setup, and cached data loaders used by both apps. Configuration comes from the local `.env`. For production, `install.cmd` writes a `SKILLS_ENV_PATH` entry into `.env` pointing at a second `.env` on the shared drive — no private paths are hardcoded in the source code.
+### Shared code
+`scripts/app_common.py` handles the DB connection, environment setup, and cached data loaders used by both apps. Production deployments point at a shared `.env` via `SKILLS_ENV_PATH` — no paths are hardcoded.
 
-> **Deployment tip**: run the two apps on different ports (defaults above) so they can coexist on the same machine simultaneously. Use OS-level access controls (e.g. different Windows user groups, a reverse proxy, or VPN) to restrict who can reach port 8502.
+### SQLite schema
+- `Person` — registered users
+- `SkillAssessment` — current ratings per person/skill
+- `SkillHistory` — full history with timestamps (used for the progression chart)
 
----
-
-## Who Can Use This
-- **Data teams** – as a template for building internal tools that collect structured data from colleagues.  
-- **HR or management** – to track skills, identify training needs, or plan project staffing.  
-- **Developers** – as an example of building a CRUD app with Streamlit + SQLite.  
-- **Students/learners** – as a reproducible portfolio project that goes beyond simple dashboards.  
+### Standalone reporting (`query_skills.py`)
+Generates Excel/CSV summaries and seaborn/Plotly heatmaps directly from the database. Useful for one-off reports outside the Streamlit UI.
 
 ---
 
-## Repo Structure
-```
-hr_skills_visualiser/
-├── scripts/
-│   ├── app_common.py       # Shared DB connection, env setup, cached loaders
-│   ├── app_employee.py     # Employee-facing app (own data only)
-│   ├── app_management.py   # Management app (all data, analytics, admin)
-│   ├── db.py               # SQLite CRUD helpers
-│   ├── make_demo_db.py     # Generates fake SQLite DB with Faker
-│   └── query_skills.py     # Standalone reporting script (static charts)
-├── install.cmd             # One-time setup (venv, packages, shared DB config)
-├── run_employee_app.cmd    # Launcher → app_employee.py (port 8501)
-├── run_management_app.cmd  # Launcher → app_management.py (port 8502)
-├── skills_demo.db          # Generated by install.cmd (gitignored — not committed)
-├── requirements.txt
-├── README.md
-└── .gitignore
-```
+## Getting started
 
----
-
-## Usage
-
-### 1. Clone the repo
+### 1. Clone
 ```bash
 git clone https://github.com/daniel-lee-wilkinson/hr_skills_visualiser.git
 cd hr_skills_visualiser
 ```
 
-### 2. Run the installer (once per machine)
+### 2. Install (once per machine)
 ```
 install.cmd
 ```
-This will:
-- Create a Python virtual environment and install all dependencies
-- Write a local `.env` pointing at the demo database
-- Generate `skills_demo.db` with 20 synthetic users and skills (if it doesn't already exist)
-- Optionally configure a **shared production database** on a mapped network drive (e.g. `C:\Skills_Tracker\` or a UNC path like `\\server\Skills_Tracker\`)
+This creates a virtual environment, installs dependencies, writes a local `.env`, and generates `skills_demo.db` with 20 synthetic users.
 
-When prompted about the shared DB:
-- Enter **Y** on the first machine with the shared drive mapped — you will be prompted for the folder path and DB filename; the installer creates the DB and writes a `.env` there
-- Enter **Y** on every subsequent machine and enter the same shared path — the installer adds `SKILLS_ENV_PATH` to the local `.env` so the app finds the production DB automatically
-- Enter **N** on dev/test machines to stay on the local demo database
+If you want to point multiple machines at a shared production database on a network drive, answer `Y` when prompted and enter the shared folder path. The installer creates the DB there and writes a `SKILLS_ENV_PATH` entry into your local `.env` so the app picks it up automatically. Answer `N` to stay on the local demo database.
 
-### 3. Run the apps
-
-**Employee app** (port 8501 — for all staff):
-```bash
-# Windows
-run_employee_app.cmd
-# or directly
-streamlit run scripts/app_employee.py
+### 3. Run
 ```
-
-**Management app** (port 8502 — restricted to HR/managers):
+run_employee_app.cmd      # port 8501
+run_management_app.cmd    # port 8502
+```
+Or directly:
 ```bash
-# Windows
-run_management_app.cmd
-# or directly
+streamlit run scripts/app_employee.py
 streamlit run scripts/app_management.py --server.port 8502
 ```
 
-Both apps connect to `skills_demo.db` by default.  
-
-To point at a different database:
+To use a different database:
 ```bash
 SKILLS_DB=my_skills.db streamlit run scripts/app_employee.py
 ```
 
-### 4. Generate reports
+### 4. Reports
 ```bash
-python query_skills.py
+python scripts/query_skills.py
 ```
-This produces:
-- `company_skill_report.xlsx`  
-- `company_skill_report.csv`  
+Outputs `company_skill_report.xlsx` and `.csv`.
 
 ---
 
-## Example Output
-
-**Company Skill Report (aggregated)**  
-| skill     | avg_theoretical | avg_practical | avg_interest | num_people |
-|-----------|-----------------|---------------|--------------|------------|
-| Python    | 4.2             | 3.8           | 4.5          | 12         |
-| SQL       | 3.9             | 3.5           | 4.1          | 15         |
-| Docker    | 2.8             | 2.6           | 3.0          | 7          |
+## Repo structure
+```
+hr_skills_visualiser/
+├── scripts/
+│   ├── app_common.py       # shared DB connection, env setup, cached loaders
+│   ├── app_employee.py     # employee-facing app
+│   ├── app_management.py   # management app
+│   ├── db.py               # SQLite CRUD helpers
+│   ├── make_demo_db.py     # generates demo database with Faker
+│   └── query_skills.py     # standalone reporting script
+├── tests/
+├── install.cmd             # one-time setup
+├── run_employee_app.cmd
+├── run_management_app.cmd
+├── .env.example
+├── requirements.txt
+└── .gitignore
+```
 
 ---
 
 ## Notes
-- The included database (`skills_demo.db`) is **synthetic**, generated with [Faker](https://faker.readthedocs.io/).  
-- Do **not** commit real `skills.db` or reports containing personal data.  
-- `.gitignore` excludes private DBs and generated outputs.  
-
----
-
-## Future Enhancements
-- Migration to PostgreSQL for multi-user deployment.  
-- Integration with Power BI or Looker dashboards.  
-- Advanced filtering and search capabilities in Streamlit.  
-- Dockerized deployment.  
-
----
+- `skills_demo.db` is generated by the installer and gitignored — it never contains real data.
+- Real databases and generated reports are excluded by `.gitignore`.
+- Tests use `tmp_path` fixtures and never touch the demo database.
