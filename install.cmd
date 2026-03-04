@@ -37,7 +37,14 @@ echo [3/4] Writing local .env (dev)...
     echo SKILLS_DB=skills_demo.db
 ) > .env
 echo      .env written.
-
+REM ── 3b. Generate demo database if it does not exist ────────
+if not exist "skills_demo.db" (
+    echo.
+    echo Generating demo database with synthetic data...
+    python -c "import sys, pathlib; sys.path.insert(0,'.'); from scripts.make_demo_db import seed_demo_db; seed_demo_db(pathlib.Path('skills_demo.db')); print('skills_demo.db created.')"
+) else (
+    echo      skills_demo.db already exists, skipping.
+)
 REM ── 4. Shared / production database setup ───────────────────
 echo.
 echo [4/4] Production database setup
