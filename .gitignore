@@ -1,0 +1,42 @@
+"""
+Specifies files and directories to be ignored by version control, including virtual environments, environment files,
+private databases, generated reports, and Python cache files.
+"""
+
+# Ignore virtual environment and .env
+
+*.venv
+.env
+
+.qodo
+
+# Ignore all databases (never commit real or demo data)
+*.db
+*.db-shm
+*.db-wal
+
+# Ignore generated reports
+company_*.png
+prod_*.png
+heatmap.JPG
+*.pptx
+
+company_*.csv
+prod_*.csv
+
+company_*.xlsx
+prod_*.xlsx
+
+# Ignore presentations (may contain company/personal metadata)
+*.pptx
+*.ppt
+
+# Ignore LaTeX build artefacts
+readme_user.aux
+readme_user.log
+readme_user.out
+readme_user.synctex.gz
+
+# Ignore Python cache
+__pycache__/
+*.pyc

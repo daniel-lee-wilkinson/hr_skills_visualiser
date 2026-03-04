@@ -1,0 +1,112 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}   % Encoding
+\usepackage[T1]{fontenc}      % Font encoding
+\usepackage{lmodern}          % Modern Latin fonts
+\usepackage{hyperref}         % Clickable links
+\usepackage{geometry}         % Page layout
+\usepackage{listings}
+\usepackage{ragged2e}         % Justified text
+\usepackage{booktabs}         % Nicer tables
+\usepackage{amsmath}          % Math symbols
+\lstset{basicstyle=\ttfamily, columns=fullflexible}
+\geometry{margin=2cm}
+
+% Document metadata
+\title{Skills Tracker --- User Guide}
+\date{\today}
+
+\begin{document}
+\maketitle
+\justifying
+
+\section*{Introduction}
+
+The Skills Tracker is an internal tool built around one idea: \textbf{visible skills are usable skills}.
+Individuals get a clear view of their own skills and progression over time.
+Management gets a company-wide view of collective expertise, skill gaps, training needs, and where knowledge is concentrated or at risk.
+
+\section*{The Two Apps}
+
+The tool is split into two separate web apps to keep personal data away from those who should not see it:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{App} & \textbf{Launcher} & \textbf{Who uses it} \\
+\midrule
+Employee app & \texttt{run\_employee\_app.cmd} & All staff \\
+Management app & \texttt{run\_management\_app.cmd} & HR / managers only \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each launcher opens the relevant Streamlit interface in a browser window automatically.
+If the browser does not open, use the URL shown in the command window.
+
+\textbf{Ensure that \texttt{prod\_skills.db} is shown} in the database caption beneath the page title before entering any data.
+
+\section*{Employee App --- What You Can Do}
+
+\begin{description}
+\item[Home] Enter your company email address, first name, and last name, then click \textbf{Continue}.
+  This registers your identity and must be done before using any other tab.
+\item[My Skills] View your own current skill profile as a table (skill, theoretical level, practical level, interest).
+\item[My Progression] Select a skill from the dropdown to see a line chart of how your self-assessed
+  levels have changed over time across three dimensions: Theoretical, Practical, and Interest.
+\item[Add / Update Skills] Log a new skill or update ratings for an existing one.
+  \begin{enumerate}
+    \item Select a \textbf{Field of Use} from the dropdown — this is the area or context in which you apply the skill
+      (e.g.\ Data Engineering, Reporting). Choose \textbf{+ Add new\ldots} if yours is not listed.
+    \item Select the \textbf{Skill} from the dropdown, or choose \textbf{+ Add new\ldots} to add one.
+    \item Adjust the four sliders:
+      \begin{itemize}
+        \item \emph{Theoretical knowledge} — how well you understand the underlying concepts (1--5).
+        \item \emph{Practical experience} — how regularly you apply the skill day-to-day (1--5).
+        \item \emph{Interest / motivation} — how keen you are to develop this skill further (1--5).
+        \item \emph{Proficiency in [field]} — your proficiency applying this skill specifically within the chosen field (1--5).
+      \end{itemize}
+    \item Click \textbf{Save}.
+  \end{enumerate}
+\end{description}
+
+All changes are logged with a timestamp so your progression is preserved.
+
+\section*{Management App --- What You Can Do}
+
+\begin{description}
+\item[Management] View every person's self-assessed values in a filterable table.
+  Use the \emph{Filter by skill} and \emph{Filter by person} dropdowns to drill down.
+\item[Analytics] Company-wide aggregated charts and skill-gap analysis, filterable by field of use.
+  \begin{itemize}
+    \item \textbf{Skill Overview table} — average theoretical, practical, and interest levels per skill,
+      plus two gap columns: knowledge gap (Theoretical $-$ Practical) and motivation gap (Interest $-$ Practical).
+    \item \textbf{Grouped bar chart} — average levels by dimension (Theoretical / Practical / Interest) for each skill.
+    \item \textbf{Knowledge Gap bar chart} — ranked view of where theoretical understanding outpaces practical ability.
+    \item \textbf{Gap snapshot tables} — top knowledge gaps, top motivation gaps, and lowest practical capability.
+    \item \textbf{Download reports} — export the summary table as \texttt{.csv} or \texttt{.xlsx}.
+  \end{itemize}
+\item[Admin] Enter an email address and, optionally, a skill name, then click \textbf{Delete}.
+  Leaving the skill field blank removes \emph{all} skills for that person.
+  Deletions are permanent and cannot be undone.
+\end{description}
+
+\section*{Caution}
+
+\begin{itemize}
+\item The shared database (\texttt{prod\_skills.db}) is stored on the shared network folder and is used by \emph{all} colleagues simultaneously. Be careful when making changes.
+\item Do \textbf{not} delete, rename, or move \texttt{prod\_skills.db}. It contains all user data.
+\item Deleting skills via the Admin tab is \textbf{permanent and cannot be undone}.
+\end{itemize}
+
+\section*{Important Guidelines}
+
+\begin{itemize}
+\item Do not edit the database directly with external tools --- this risks data corruption or inconsistencies.
+\item Close the command-prompt window when you have finished to shut down the local server.
+\item Do not run multiple instances of the same app on the same machine at the same time.
+\item Direct any issues or questions to your designated system administrator.
+\end{itemize}
+
+\end{document}
