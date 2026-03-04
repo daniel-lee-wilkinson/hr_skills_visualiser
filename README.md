@@ -121,9 +121,9 @@ This will:
 - Optionally configure a **shared production database** on a mapped network drive (e.g. `C:\Skills_Tracker\` or a UNC path like `\\server\Skills_Tracker\`)
 
 When prompted about the shared DB:
-- Choose **Y** on the first machine with the shared drive mapped — you will be prompted for the folder path and DB filename; the installer creates the DB and writes a `.env` there
-- Choose **Y** on every subsequent machine and enter the same shared path — the installer adds `SKILLS_ENV_PATH` to the local `.env` so the app finds the production DB automatically
-- Choose **N** on dev/test machines to stay on the local demo database
+- Enter **Y** on the first machine with the shared drive mapped — you will be prompted for the folder path and DB filename; the installer creates the DB and writes a `.env` there
+- Enter **Y** on every subsequent machine and enter the same shared path — the installer adds `SKILLS_ENV_PATH` to the local `.env` so the app finds the production DB automatically
+- Enter **N** on dev/test machines to stay on the local demo database
 
 ### 3. Run the apps
 
