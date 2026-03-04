@@ -1,3 +1,5 @@
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 ## Overview
 The **Skills Visualiser App** is an internal tool prototype built in **Python** with **Streamlit** and **SQLite**.  
 It allows colleagues to:
