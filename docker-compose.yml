@@ -1,0 +1,38 @@
+services:
+
+  # ── Employee self-service app (port 8501) ─────────────────────────────────
+  employee:
+    build: .
+    image: hr-skills-visualiser
+    ports:
+      - "8501:8501"
+    volumes:
+      - skills_data:/data
+    environment:
+      SKILLS_DB: /data/skills.db
+      APP_SCRIPT: scripts/app_employee.py
+      PORT: "8501"
+      # Set to "true" on first deploy if you want 20 synthetic users pre-loaded.
+      # Leave "false" for a clean production database.
+      SEED_DEMO_DATA: "true"
+    restart: unless-stopped
+
+  # ── Management / HR app (port 8502) ──────────────────────────────────────
+  management:
+    image: hr-skills-visualiser   # reuses the same built image
+    ports:
+      - "8502:8502"
+    volumes:
+      - skills_data:/data
+    environment:
+      SKILLS_DB: /data/skills.db
+      APP_SCRIPT: scripts/app_management.py
+      PORT: "8502"
+      SEED_DEMO_DATA: "false"
+    depends_on:
+      - employee            # ensures the employee container (and thus DB init) starts first
+    restart: unless-stopped
+
+# ── Persistent volume for the SQLite database ────────────────────────────────
+volumes:
+  skills_data:

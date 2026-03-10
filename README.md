@@ -2,62 +2,88 @@
 
 # HR Skills Visualiser
 
-A small internal tool built to solve a specific problem: nobody in the team had a clear picture of who knew what, or how that was changing over time. This app lets colleagues self-assess their skills across three dimensions (theoretical knowledge, practical experience, and interest in developing further), stores the history of every change, and gives management a way to spot gaps and plan training.
+A small internal tool built around one idea: visible skills are usable skills. Colleagues self-assess across three dimensions (theoretical knowledge, practical experience, and interest in developing further). Management gets a company-wide view of expertise, skill gaps, and where knowledge is concentrated or at risk.
 
-Built with Python, Streamlit, and SQLite. The demo database is generated with Faker — no real data in this repo.
-
----
-
-## Architecture
-
-The front-end is split into two Streamlit apps to keep personal data away from those who shouldn't see it:
-
-| App | Script | Launcher | Port | Who uses it |
-|-----|--------|----------|------|-------------|
-| Employee app | `scripts/app_employee.py` | `run_employee_app.cmd` | 8501 | All staff |
-| Management app | `scripts/app_management.py` | `run_management_app.cmd` | 8502 | HR / managers only |
-
-### Employee app tabs
-- **Home**: register / confirm email
-- **My Skills**: your current skill profile
-- **My Progression**: line chart of how your ratings have changed over time
-- **Add / Update Skills**: log or update a skill entry
-
-### Management app tabs
-- **Management**: filterable table of every person's self-assessed values
-- **Analytics**: aggregated charts, knowledge gap analysis (theoretical − practical), export to CSV/Excel
-- **Admin**: delete individual skill entries
-
-### Shared code
-`scripts/app_common.py` handles the DB connection, environment setup, and cached data loaders used by both apps. Production deployments point at a shared `.env` via `SKILLS_ENV_PATH`. No paths are hardcoded.
-
-### SQLite schema
-- `Person`: registered users
-- `SkillAssessment`: current ratings per person/skill
-- `SkillHistory`: full history with timestamps (used for the progression chart)
-
-### Standalone reporting (`query_skills.py`)
-Generates Excel/CSV summaries and seaborn/Plotly heatmaps directly from the database. Useful for one-off reports outside the Streamlit UI.
+Built with Python, Streamlit, and SQLite.
 
 ---
 
-## Getting started
+## The two apps
 
-### 1. Clone
+The tool is split into two separate web apps to keep personal data away from those who shouldn't see it:
+
+| App | Port | Who uses it |
+|-----|------|-------------|
+| Employee app | 8501 | All staff — register, view own skills, log updates |
+| Management app | 8502 | HR / managers only — full team view, analytics, admin |
+
+Both apps share a single database. All users' data is stored in one place on the server.
+
+---
+
+## Running it — choose your path
+
+### Option A: Docker (recommended for shared / production use)
+
+Use this if you want multiple people to use the tool. The app runs on a central server; colleagues open it in a browser with nothing to install on their machines.
+
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac) or Docker Engine + Compose (Linux) on the server machine.
+
+**1. Clone the repo onto the server**
 ```bash
 git clone https://github.com/daniel-lee-wilkinson/hr_skills_visualiser.git
 cd hr_skills_visualiser
 ```
 
-### 2. Install (once per machine)
+**2. Build and start**
+```bash
+docker compose up --build -d
+```
+Both services start in the background. On the server itself:
+- Employee app → http://localhost:8501
+- Management app → http://localhost:8502
+
+Other machines on the same network use the server's IP or hostname instead of `localhost`, e.g. `http://192.168.1.50:8501`.
+
+**3. Tell your users their URLs** — that's all they need.
+
+#### First deploy — seeding demo data
+To start with 20 synthetic users pre-loaded, open `docker-compose.yml` and set `SEED_DEMO_DATA: "true"` on the `employee` service before the first `docker compose up --build -d`. Set it back to `"false"` afterwards — re-seeding is skipped automatically once the database file exists.
+
+#### Day-to-day commands
+```bash
+docker compose up -d       # start both services
+docker compose down        # stop both services
+docker compose logs -f     # tail live logs from both containers
+docker compose up --build -d   # rebuild after code changes (data is preserved)
+```
+
+#### Database
+The SQLite file is stored in a named Docker volume (`skills_data`) at `/data/skills.db`. It is shared between both containers and survives restarts and rebuilds. To back it up:
+```bash
+# Windows (PowerShell)
+docker run --rm -v hr-skills-visualiser_skills_data:/data -v "${PWD}:/backup" alpine cp /data/skills.db /backup/skills_backup.db
+```
+
+---
+
+### Option B: Local development (single machine only)
+
+Use this to explore the code or run tests. The app is served from your own machine and is only accessible to you — not suitable for shared use.
+
+**1. Clone**
+```bash
+git clone https://github.com/daniel-lee-wilkinson/hr_skills_visualiser.git
+cd hr_skills_visualiser
+```
+
+**2. Install (once)**
 ```
 install.cmd
 ```
-This creates a virtual environment, installs dependencies, writes a local `.env`, and generates `skills_demo.db` with 20 synthetic users.
+Creates a virtual environment, installs dependencies, writes a `.env`, and generates `skills_demo.db` with 20 synthetic users.
 
-If you want to point multiple machines at a shared production database on a network drive, answer `Y` when prompted and enter the shared folder path. The installer creates the DB there and writes a `SKILLS_ENV_PATH` entry into your local `.env` so the app picks it up automatically. Answer `N` to stay on the local demo database.
-
-### 3. Run
+**3. Run**
 ```
 run_employee_app.cmd      # port 8501
 run_management_app.cmd    # port 8502
@@ -68,16 +94,37 @@ streamlit run scripts/app_employee.py
 streamlit run scripts/app_management.py --server.port 8502
 ```
 
-To use a different database:
-```bash
-SKILLS_DB=my_skills.db streamlit run scripts/app_employee.py
-```
-
-### 4. Reports
+**4. Reports (optional)**
 ```bash
 python scripts/query_skills.py
 ```
 Outputs `company_skill_report.xlsx` and `.csv`.
+
+---
+
+## Architecture reference
+
+### App structure
+`scripts/app_common.py` handles the DB connection, environment setup, and cached data loaders used by both apps. No paths are hardcoded — the database location is resolved from environment variables at runtime.
+
+### SQLite schema
+- `Person`: registered users
+- `SkillAssessment`: current ratings per person/skill
+- `SkillHistory`: full history with timestamps (used for the progression chart)
+
+Concurrent access is handled via WAL (Write-Ahead Logging) mode, which allows multiple simultaneous readers without blocking writes.
+
+### Standalone reporting
+`scripts/query_skills.py` generates Excel/CSV summaries and heatmaps directly from the database — useful for one-off reports outside the Streamlit UI.
+
+### Docker files
+
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Two-stage build — pip dependencies cached separately from source for fast rebuilds |
+| `docker-compose.yml` | Two services sharing the `skills_data` named volume |
+| `docker-entrypoint.py` | Initialises the DB on first launch, then starts Streamlit |
+| `.dockerignore` | Keeps the image small; excludes `.env`, `*.db`, `.venv`, tests, etc. |
 
 ---
 
@@ -92,10 +139,13 @@ hr_skills_visualiser/
 │   ├── make_demo_db.py     # generates demo database with Faker
 │   └── query_skills.py     # standalone reporting script
 ├── tests/
-├── install.cmd             # one-time setup
-├── run_employee_app.cmd
-├── run_management_app.cmd
-├── .env.example
+├── Dockerfile              # container image definition
+├── docker-compose.yml      # two-service orchestration (employee + management)
+├── docker-entrypoint.py    # DB init + Streamlit launcher for containers
+├── .dockerignore
+├── install.cmd             # one-time setup (local dev only)
+├── run_employee_app.cmd    # local dev launcher
+├── run_management_app.cmd  # local dev launcher
 ├── requirements.txt
 └── .gitignore
 ```

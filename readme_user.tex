@@ -21,92 +21,95 @@
 \maketitle
 \justifying
 
-\section*{Introduction}
+\section*{What is this?}
 
-The Skills Tracker is an internal tool built around one idea: \textbf{visible skills are usable skills}.
-Individuals get a clear view of their own skills and progression over time.
-Management gets a company-wide view of collective expertise, skill gaps, training needs, and where knowledge is concentrated or at risk.
+The Skills Tracker lets you self-assess your skills across three dimensions --- theoretical knowledge,
+practical experience, and interest in developing further --- and tracks how those ratings change over time.
+Management can see a company-wide picture of collective expertise, identify gaps, and plan training.
 
-\section*{The Two Apps}
+There is \textbf{nothing to install}. The tool runs on a central server; you open it in any web browser.
 
-The tool is split into two separate web apps to keep personal data away from those who should not see it:
+\section*{How to access it}
+
+The tool is split into two separate web apps so that personal data is only visible to those who need it.
+Your system administrator will give you the URL for your role.
 
 \begin{center}
 \begin{tabular}{lll}
 \toprule
-\textbf{App} & \textbf{Launcher} & \textbf{Who uses it} \\
+\textbf{Who you are} & \textbf{Which app} & \textbf{Default URL} \\
 \midrule
-Employee app & \texttt{run\_employee\_app.cmd} & All staff \\
-Management app & \texttt{run\_management\_app.cmd} & HR / managers only \\
+All staff & Employee app & \texttt{http://<server>:8501} \\
+HR / managers & Management app & \texttt{http://<server>:8502} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-Each launcher opens the relevant Streamlit interface in a browser window automatically.
-If the browser does not open, use the URL shown in the command window.
+Before entering any data, confirm that \textbf{\texttt{prod\_skills.db}} is shown in the database caption
+beneath the page title.
 
-\textbf{Ensure that \texttt{prod\_skills.db} is shown} in the database caption beneath the page title before entering any data.
+\section*{Employee app}
 
-\section*{Employee App --- What You Can Do}
+\subsection*{First time only --- register}
+
+Go to the \textbf{Home} tab, enter your company email address, first name, and last name, then click
+\textbf{Continue}. This registers your identity and must be done before using any other tab.
+
+\subsection*{Viewing your skills}
 
 \begin{description}
-\item[Home] Enter your company email address, first name, and last name, then click \textbf{Continue}.
-  This registers your identity and must be done before using any other tab.
-\item[My Skills] View your own current skill profile as a table (skill, theoretical level, practical level, interest).
-\item[My Progression] Select a skill from the dropdown to see a line chart of how your self-assessed
-  levels have changed over time across three dimensions: Theoretical, Practical, and Interest.
-\item[Add / Update Skills] Log a new skill or update ratings for an existing one.
-  \begin{enumerate}
-    \item Select a \textbf{Field of Use} from the dropdown — this is the area or context in which you apply the skill
-      (e.g.\ Data Engineering, Reporting). Choose \textbf{+ Add new\ldots} if yours is not listed.
-    \item Select the \textbf{Skill} from the dropdown, or choose \textbf{+ Add new\ldots} to add one.
-    \item Adjust the four sliders:
-      \begin{itemize}
-        \item \emph{Theoretical knowledge} — how well you understand the underlying concepts (1--5).
-        \item \emph{Practical experience} — how regularly you apply the skill day-to-day (1--5).
-        \item \emph{Interest / motivation} — how keen you are to develop this skill further (1--5).
-        \item \emph{Proficiency in [field]} — your proficiency applying this skill specifically within the chosen field (1--5).
-      \end{itemize}
-    \item Click \textbf{Save}.
-  \end{enumerate}
+\item[My Skills] Your current skill profile as a table: skill, theoretical level, practical level, and interest.
+\item[My Progression] Select a skill from the dropdown to see a line chart of how your ratings have changed
+  over time across all three dimensions.
 \end{description}
 
-All changes are logged with a timestamp so your progression is preserved.
+\subsection*{Logging or updating a skill}
 
-\section*{Management App --- What You Can Do}
+Go to the \textbf{Add / Update Skills} tab:
+\begin{enumerate}
+  \item Select a \textbf{Field of Use} --- the area or context in which you apply the skill
+    (e.g.\ Data Engineering, Reporting). Choose \textbf{+ Add new\ldots} if yours is not listed.
+  \item Select the \textbf{Skill}, or choose \textbf{+ Add new\ldots} to add one.
+  \item Adjust the four sliders:
+    \begin{itemize}
+      \item \emph{Theoretical knowledge} --- how well you understand the underlying concepts (1--5).
+      \item \emph{Practical experience} --- how regularly you apply the skill day-to-day (1--5).
+      \item \emph{Interest / motivation} --- how keen you are to develop this skill further (1--5).
+      \item \emph{Proficiency in [field]} --- your proficiency applying this skill within the chosen field (1--5).
+    \end{itemize}
+  \item Click \textbf{Save}.
+\end{enumerate}
+
+Every save is logged with a timestamp, so your full progression history is preserved.
+
+\section*{Management app}
 
 \begin{description}
-\item[Management] View every person's self-assessed values in a filterable table.
+\item[Management] Every person's self-assessed values in a filterable table.
   Use the \emph{Filter by skill} and \emph{Filter by person} dropdowns to drill down.
 \item[Analytics] Company-wide aggregated charts and skill-gap analysis, filterable by field of use.
   \begin{itemize}
-    \item \textbf{Skill Overview table} — average theoretical, practical, and interest levels per skill,
-      plus two gap columns: knowledge gap (Theoretical $-$ Practical) and motivation gap (Interest $-$ Practical).
-    \item \textbf{Grouped bar chart} — average levels by dimension (Theoretical / Practical / Interest) for each skill.
-    \item \textbf{Knowledge Gap bar chart} — ranked view of where theoretical understanding outpaces practical ability.
-    \item \textbf{Gap snapshot tables} — top knowledge gaps, top motivation gaps, and lowest practical capability.
-    \item \textbf{Download reports} — export the summary table as \texttt{.csv} or \texttt{.xlsx}.
+    \item \textbf{Skill Overview table} --- average theoretical, practical, and interest levels per skill,
+      plus a knowledge gap column (Theoretical $-$ Practical) and a motivation gap column (Interest $-$ Practical).
+    \item \textbf{Grouped bar chart} --- average levels by dimension for each skill.
+    \item \textbf{Knowledge Gap bar chart} --- ranked view of where theoretical understanding outpaces practical ability.
+    \item \textbf{Gap snapshot tables} --- top knowledge gaps, top motivation gaps, and lowest practical capability.
+    \item \textbf{Download reports} --- export the summary table as \texttt{.csv} or \texttt{.xlsx}.
   \end{itemize}
 \item[Admin] Enter an email address and, optionally, a skill name, then click \textbf{Delete}.
   Leaving the skill field blank removes \emph{all} skills for that person.
-  Deletions are permanent and cannot be undone.
+  \textbf{Deletions are permanent and cannot be undone.}
 \end{description}
 
-\section*{Caution}
+\section*{Important notes}
 
 \begin{itemize}
-\item The shared database (\texttt{prod\_skills.db}) is stored on the shared network folder and is used by \emph{all} colleagues simultaneously. Be careful when making changes.
-\item Do \textbf{not} delete, rename, or move \texttt{prod\_skills.db}. It contains all user data.
-\item Deleting skills via the Admin tab is \textbf{permanent and cannot be undone}.
-\end{itemize}
-
-\section*{Important Guidelines}
-
-\begin{itemize}
-\item Do not edit the database directly with external tools --- this risks data corruption or inconsistencies.
-\item Close the command-prompt window when you have finished to shut down the local server.
-\item Do not run multiple instances of the same app on the same machine at the same time.
-\item Direct any issues or questions to your designated system administrator.
+  \item All colleagues share a single database on the server. Changes made by one person are immediately
+    visible to others.
+  \item Do not attempt to access, copy, or edit the database file directly --- this risks data corruption.
+  \item Deletions via the Admin tab are \textbf{permanent and cannot be undone}.
+  \item If the app is unavailable or behaving unexpectedly, contact your system administrator.
+    Do not attempt to restart or reinstall anything yourself.
 \end{itemize}
 
 \end{document}

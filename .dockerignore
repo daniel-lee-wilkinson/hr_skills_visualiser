@@ -1,0 +1,42 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Local config and secrets — injected via Docker environment variables instead
+.env
+*.env
+
+# Database files — live in the Docker named volume, not the image
+*.db
+*.sqlite
+
+# Git
+.git/
+.gitignore
+
+# Tests — not needed at runtime
+tests/
+
+# LaTeX / docs artefacts
+*.tex
+*.aux
+*.log
+*.pdf
+readme_user.*
+
+# Data inbox (may contain sensitive uploads)
+data/
+
+# Windows batch launchers (not used inside the container)
+*.cmd
+
+# Editor / OS noise
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
