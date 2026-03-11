@@ -29,8 +29,7 @@ from scripts.app_common import (
     get_existing_skills,
     get_existing_applications,
     upsert_application,
-    upsert_skill,
-    upsert_skill_application,
+    upsert_skill_entry,
 )
 
 # ─────────────────────────────────────────────
@@ -106,8 +105,9 @@ with tab_myskills:
     else:
         email = st.session_state.email
         df = pd.read_sql_query(
-            "SELECT skill, theoretical_level, practical_level, interest "
-            "FROM SkillAssessment WHERE email=?",
+            "SELECT skill_name AS skill, field_of_use, "
+            "theoretical_level, practical_level, interest, field_proficiency "
+            "FROM SkillEntry WHERE email=? ORDER BY skill_name, field_of_use",
             conn,
             params=(email,),
         )
@@ -131,8 +131,10 @@ with tab_progress:
 
         hist = pd.read_sql_query(
             """
-            SELECT skill, theoretical_level, practical_level, interest, updated_at
-            FROM SkillHistory
+            SELECT skill_name, field_of_use,
+                   theoretical_level, practical_level, interest, field_proficiency,
+                   updated_at
+            FROM SkillEntryHistory
             WHERE email = ?
             ORDER BY updated_at ASC
             """,
@@ -145,14 +147,27 @@ with tab_progress:
         else:
             hist["updated_at"] = pd.to_datetime(hist["updated_at"], errors="coerce")
 
-            skills = sorted(hist["skill"].unique().tolist())
-            selected_skill = st.selectbox("Select a skill to view its progression:", skills)
+            # Step 1 — pick a field of use
+            fields = sorted(hist["field_of_use"].unique().tolist())
+            selected_field = st.selectbox(
+                "Select a field of use:", fields, key="prog_field"
+            )
 
-            skill_df = hist[hist["skill"] == selected_skill].copy()
+            # Step 2 — pick a skill within that field
+            field_hist = hist[hist["field_of_use"] == selected_field]
+            skills = sorted(field_hist["skill_name"].unique().tolist())
+            selected_skill = st.selectbox(
+                "Select a skill:", skills, key="prog_skill"
+            )
+
+            skill_df = field_hist[field_hist["skill_name"] == selected_skill].copy()
 
             long_df = skill_df.melt(
                 id_vars=["updated_at"],
-                value_vars=["theoretical_level", "practical_level", "interest"],
+                value_vars=[
+                    "theoretical_level", "practical_level",
+                    "interest", "field_proficiency",
+                ],
                 var_name="dimension",
                 value_name="level",
             )
@@ -161,10 +176,13 @@ with tab_progress:
                 "theoretical_level": "Theoretical",
                 "practical_level": "Practical",
                 "interest": "Interest",
+                "field_proficiency": f"Proficiency in {selected_field}",
             }
             long_df["dimension"] = long_df["dimension"].replace(rename_map)
 
-            st.markdown(f"### Progression for **{selected_skill}**")
+            st.markdown(
+                f"### Progression for **{selected_skill}** in **{selected_field}**"
+            )
 
             fig = px.line(
                 long_df,
@@ -172,12 +190,13 @@ with tab_progress:
                 y="level",
                 color="dimension",
                 markers=True,
-                title=f"{selected_skill} — Skill Progression Over Time",
+                title=f"{selected_skill} ({selected_field}) — Progression Over Time",
                 labels={"level": "Level (1–5)", "updated_at": "Date"},
                 color_discrete_map={
                     "Theoretical": "#1f77b4",
                     "Practical": "#2ca02c",
                     "Interest": "#ff7f0e",
+                    f"Proficiency in {selected_field}": "#9467bd",
                 },
             )
             fig.update_layout(height=500, yaxis=dict(dtick=1, range=[1, 5]))
@@ -276,7 +295,13 @@ with tab_update:
             elif not skill_name:
                 st.error("Please select or enter a skill name.")
             else:
-                app_id = upsert_application(conn, field_name)
-                upsert_skill(conn, email, skill_name, theo, prac, interest)
-                upsert_skill_application(conn, email, skill_name, app_id, field_level)
-                st.success(f"Saved **{skill_name}** in the field of **{field_name}**.")
+                upsert_application(conn, field_name)
+                upsert_skill_entry(
+                    conn, email, skill_name, field_name,
+                    theo, prac, interest, field_level
+                )
+                st.session_state.save_success = f"Saved **{skill_name}** in the field of **{field_name}**."
+                st.rerun()
+
+        if st.session_state.get("save_success"):
+            st.success(st.session_state.pop("save_success"))

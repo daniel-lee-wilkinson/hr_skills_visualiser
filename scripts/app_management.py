@@ -85,9 +85,11 @@ with tab_management:
             "last_name": "Last Name",
             "email": "Email",
             "skill": "Skill",
+            "field_of_use": "Field of Use",
             "theoretical_level": "Theoretical",
             "practical_level": "Practical",
             "interest": "Interest",
+            "field_proficiency": "Proficiency in Field",
         })
 
         st.dataframe(
@@ -95,7 +97,8 @@ with tab_management:
             use_container_width=True,
             hide_index=True,
             column_order=["First Name", "Last Name", "Email", "Skill",
-                          "Theoretical", "Practical", "Interest"],
+                          "Field of Use", "Theoretical", "Practical",
+                          "Interest", "Proficiency in Field"],
         )
         st.caption(
             f"{len(view)} rows shown "
@@ -120,7 +123,7 @@ with tab_analytics:
     df = load_analytics_data(conn)
 
     if selected:
-        df = df[df["application"].isin(selected) | df["application"].isna()]
+        df = df[df["field_of_use"].isin(selected)]
 
     if df.empty:
         st.info("No data for the selected filters.")
@@ -130,10 +133,11 @@ with tab_analytics:
             avg_theoretical=("theoretical_level", "mean"),
             avg_practical=("practical_level", "mean"),
             avg_interest=("interest", "mean"),
+            avg_field_proficiency=("field_proficiency", "mean"),
             contributors=("email", "count"),
         ).reset_index()
 
-        for col in ["avg_theoretical", "avg_practical", "avg_interest"]:
+        for col in ["avg_theoretical", "avg_practical", "avg_interest", "avg_field_proficiency"]:
             grouped[col] = grouped[col].round(1)
 
         grouped["gap_T_minus_P"] = (grouped["avg_theoretical"] - grouped["avg_practical"]).round(1)
@@ -148,7 +152,7 @@ with tab_analytics:
 
         long_form = grouped.melt(
             id_vars="skill",
-            value_vars=["avg_theoretical", "avg_practical", "avg_interest"],
+            value_vars=["avg_theoretical", "avg_practical", "avg_interest", "avg_field_proficiency"],
             var_name="dimension",
             value_name="average",
         )
@@ -156,6 +160,7 @@ with tab_analytics:
             "avg_theoretical": "Theoretical",
             "avg_practical": "Practical",
             "avg_interest": "Interest",
+            "avg_field_proficiency": "Field Proficiency",
         })
 
         fig_levels = px.bar(
@@ -170,6 +175,7 @@ with tab_analytics:
                 "Theoretical": "#1f77b4",
                 "Practical": "#2ca02c",
                 "Interest": "#ff7f0e",
+                "Field Proficiency": "#9467bd",
             },
         )
         fig_levels.update_layout(xaxis_tickangle=-45, height=600)

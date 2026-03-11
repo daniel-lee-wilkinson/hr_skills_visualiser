@@ -16,7 +16,7 @@ import random
 from datetime import datetime, timedelta
 import pathlib
 
-from scripts.db import create_schema
+from scripts.db import create_schema, upsert_skill_entry
 
 fake = Faker()
 
@@ -36,10 +36,11 @@ def seed_demo_db(db_path: pathlib.Path, n_users: int = 20) -> None:
     # --- Create schema ---
     create_schema(conn)
 
-    # --- Seed Applications ---
-    applications_list = ["HAZOP", "CFD", "LCA", "Process Safety", "Optimization"]
-    for app in applications_list:
-        cur.execute("INSERT OR IGNORE INTO Application (name) VALUES (?)", (app,))
+    # --- Seed Applications (fields of use) ---
+    fields_list = ["HAZOP", "CFD", "LCA", "Process Safety", "Optimization"]
+    for field in fields_list:
+        cur.execute("INSERT OR IGNORE INTO Application (name) VALUES (?)", (field,))
+    conn.commit()
 
     # --- Generate fake data ---
     skills_list = [
@@ -57,65 +58,27 @@ def seed_demo_db(db_path: pathlib.Path, n_users: int = 20) -> None:
             (email, first_name, last_name),
         )
 
-        cur.execute("SELECT id, name FROM Application")
-        apps = cur.fetchall()
-
         for skill in random.sample(skills_list, random.randint(2, 4)):
-            theo = random.randint(1, 5)
-            prac = random.randint(1, 5)
-            interest = random.randint(1, 5)
-
-            cur.execute(
-                """
-                INSERT OR IGNORE INTO SkillAssessment
-                    (email, skill, theoretical_level, practical_level, interest)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (email, skill, theo, prac, interest),
-            )
-
-            for _ in range(random.randint(1, 3)):
-                cur.execute(
-                    """
-                    INSERT INTO SkillHistory
-                        (email, skill, theoretical_level, practical_level, interest, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        email, skill,
-                        random.randint(1, 5),
-                        random.randint(1, 5),
-                        random.randint(1, 5),
-                        (datetime.now() - timedelta(days=random.randint(0, 365))).isoformat(),
-                    ),
-                )
-
-            for app_id, app_name in random.sample(apps, random.randint(1, 2)):
-                level = random.randint(1, 5)
-                cur.execute(
-                    """
-                    INSERT OR IGNORE INTO SkillApplication
-                        (email, skill, application_id, level)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (email, skill, app_id, level),
-                )
-
-                for _ in range(random.randint(1, 2)):
-                    cur.execute(
-                        """
-                        INSERT INTO ApplicationHistory
-                            (email, skill, application_id, level, updated_at)
-                        VALUES (?, ?, ?, ?, ?)
-                        """,
-                        (
-                            email, skill, app_id,
-                            random.randint(1, 5),
-                            (datetime.now() - timedelta(days=random.randint(0, 365))).isoformat(),
-                        ),
+            for field in random.sample(fields_list, random.randint(1, 2)):
+                # Insert 1–3 history points, each slightly varying
+                for i in range(random.randint(1, 3)):
+                    ts = (datetime.now() - timedelta(days=random.randint(0, 365))).isoformat()
+                    upsert_skill_entry(
+                        conn, cur,
+                        email, skill, field,
+                        theo=random.randint(1, 5),
+                        prac=random.randint(1, 5),
+                        interest=random.randint(1, 5),
+                        field_proficiency=random.randint(1, 5),
                     )
+                    # Backdate the last inserted history row
+                    cur.execute(
+                        "UPDATE SkillEntryHistory SET updated_at=? "
+                        "WHERE id=(SELECT MAX(id) FROM SkillEntryHistory WHERE email=? AND skill_name=? AND field_of_use=?)",
+                        (ts, email, skill, field),
+                    )
+                conn.commit()
 
-    conn.commit()
     conn.close()
     print(f"✅ Demo database created: {db_path}")
 

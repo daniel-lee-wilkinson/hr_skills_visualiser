@@ -123,7 +123,7 @@ def test_admin_delete_removes_skill_from_db(seeded_db_path, seeded_email):
     conn = sqlite3.connect(seeded_db_path)
     cur = conn.cursor()
     cur.execute(
-        "SELECT skill FROM SkillAssessment WHERE email=? LIMIT 1",
+        "SELECT skill_name FROM SkillEntry WHERE email=? LIMIT 1",
         (seeded_email,),
     )
     row = cur.fetchone()
@@ -152,7 +152,7 @@ def test_admin_delete_removes_skill_from_db(seeded_db_path, seeded_email):
     conn = sqlite3.connect(seeded_db_path)
     cur = conn.cursor()
     cur.execute(
-        "SELECT COUNT(*) FROM SkillAssessment WHERE email=? AND skill=?",
+        "SELECT COUNT(*) FROM SkillEntry WHERE email=? AND skill_name=?",
         (seeded_email, target_skill),
     )
     count = cur.fetchone()[0]

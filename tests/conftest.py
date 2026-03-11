@@ -69,7 +69,7 @@ def seeded_email(seeded_db_path: pathlib.Path) -> str:
     cur = conn.cursor()
     cur.execute(
         "SELECT email FROM Person p "
-        "WHERE EXISTS (SELECT 1 FROM SkillAssessment sa WHERE sa.email = p.email) "
+        "WHERE EXISTS (SELECT 1 FROM SkillEntry se WHERE se.email = p.email) "
         "LIMIT 1"
     )
     row = cur.fetchone()

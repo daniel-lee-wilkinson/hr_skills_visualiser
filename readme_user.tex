@@ -23,9 +23,9 @@
 
 \section*{What is this?}
 
-The Skills Tracker lets you self-assess your skills across three dimensions --- theoretical knowledge,
-practical experience, and interest in developing further --- and tracks how those ratings change over time.
-Management can see a company-wide picture of collective expertise, identify gaps, and plan training.
+The Skills Tracker lets you self-assess skills in the context of specific fields of use --- for example, how well you apply Python in Data Engineering, or SQL in Reporting.
+For each combination of skill and field, you rate four dimensions: theoretical knowledge, practical experience, interest in developing further, and your proficiency within that specific field.
+All ratings are tracked over time so both you and management can see how they change.
 
 There is \textbf{nothing to install}. The tool runs on a central server; you open it in any web browser.
 
@@ -58,29 +58,32 @@ Go to the \textbf{Home} tab, enter your company email address, first name, and l
 \subsection*{Viewing your skills}
 
 \begin{description}
-\item[My Skills] Your current skill profile as a table: skill, theoretical level, practical level, and interest.
-\item[My Progression] Select a skill from the dropdown to see a line chart of how your ratings have changed
-  over time across all three dimensions.
+\item[My Skills] Your current skill profile as a table. Each row is one skill-in-context: the field of use,
+  the skill name, and your four ratings for that combination.
+  The same skill can appear more than once if you have rated it in different fields.
+\item[My Progression] Select a field and a skill to see a line chart of how your four ratings have changed
+  over time for that specific combination.
 \end{description}
 
 \subsection*{Logging or updating a skill}
 
 Go to the \textbf{Add / Update Skills} tab:
 \begin{enumerate}
-  \item Select a \textbf{Field of Use} --- the area or context in which you apply the skill
-    (e.g.\ Data Engineering, Reporting). Choose \textbf{+ Add new\ldots} if yours is not listed.
+  \item Select a \textbf{Field of Use} --- the area or context in which you are applying the skill
+    (e.g.\ Data Engineering, Reporting, Process Safety). Choose \textbf{+ Add new\ldots} if yours is not listed.
   \item Select the \textbf{Skill}, or choose \textbf{+ Add new\ldots} to add one.
-  \item Adjust the four sliders:
+  \item Adjust the four sliders. All four ratings relate to this specific skill \emph{in the chosen field}:
     \begin{itemize}
       \item \emph{Theoretical knowledge} --- how well you understand the underlying concepts (1--5).
-      \item \emph{Practical experience} --- how regularly you apply the skill day-to-day (1--5).
+      \item \emph{Practical experience} --- how regularly you apply this skill day-to-day (1--5).
       \item \emph{Interest / motivation} --- how keen you are to develop this skill further (1--5).
-      \item \emph{Proficiency in [field]} --- your proficiency applying this skill within the chosen field (1--5).
+      \item \emph{Proficiency in [field]} --- your overall proficiency applying this skill within the chosen field (1--5).
     \end{itemize}
   \item Click \textbf{Save}.
 \end{enumerate}
 
-Every save is logged with a timestamp, so your full progression history is preserved.
+Rating Python in Data Engineering and rating Python in Reporting are treated as two separate entries.
+Each combination has its own independent history, so changing one does not affect the other.
 
 \section*{Management app}
 

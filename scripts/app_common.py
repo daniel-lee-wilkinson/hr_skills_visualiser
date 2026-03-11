@@ -24,8 +24,7 @@ from scripts.db import (
     get_existing_skills as _get_existing_skills,
     get_existing_applications as _get_existing_applications,
     upsert_application as _upsert_application,
-    upsert_skill as _upsert_skill,
-    upsert_skill_application as _upsert_skill_application,
+    upsert_skill_entry as _upsert_skill_entry,
     delete_skill as _delete_skill,
 )
 
@@ -79,13 +78,9 @@ def upsert_application(conn, name):
     return _upsert_application(conn, conn.cursor(), name)
 
 
-def upsert_skill(conn, email, skill, theo, prac, interest):
-    _upsert_skill(conn, conn.cursor(), email, skill, theo, prac, interest)
+def upsert_skill_entry(conn, email, skill, field, theo, prac, interest, field_proficiency):
+    _upsert_skill_entry(conn, conn.cursor(), email, skill, field, theo, prac, interest, field_proficiency)
     st.cache_data.clear()   # invalidate all cached query results
-
-
-def upsert_skill_application(conn, email, skill, app_id, level):
-    _upsert_skill_application(conn, conn.cursor(), email, skill, app_id, level)
 
 
 def delete_skill(conn, email, skill=None):
@@ -98,17 +93,14 @@ def delete_skill(conn, email, skill=None):
 # ─────────────────────────────────────────────
 @st.cache_data
 def load_analytics_data(_conn):
-    """Full join of SkillAssessment + SkillApplication + Application."""
+    """All SkillEntry rows joined with Person name fields — used by the management analytics tab."""
     return pd.read_sql_query(
         """
-        SELECT sa.email, sa.skill,
-               sa.theoretical_level, sa.practical_level, sa.interest,
-               a.name AS application
-        FROM SkillAssessment sa
-        LEFT JOIN SkillApplication sa2
-            ON sa.email = sa2.email AND sa.skill = sa2.skill
-        LEFT JOIN Application a
-            ON sa2.application_id = a.id
+        SELECT se.email, se.skill_name AS skill, se.field_of_use,
+               se.theoretical_level, se.practical_level, se.interest,
+               se.field_proficiency
+        FROM SkillEntry se
+        ORDER BY se.email, se.skill_name, se.field_of_use
         """,
         _conn,
     )
@@ -119,11 +111,13 @@ def load_individual_data(_conn):
     """Per-person skill entries joined with Person name fields."""
     return pd.read_sql_query(
         """
-        SELECT p.first_name, p.last_name, sa.email,
-               sa.skill, sa.theoretical_level, sa.practical_level, sa.interest
-        FROM SkillAssessment sa
-        LEFT JOIN Person p ON sa.email = p.email
-        ORDER BY sa.email, sa.skill
+        SELECT p.first_name, p.last_name, se.email,
+               se.skill_name AS skill, se.field_of_use,
+               se.theoretical_level, se.practical_level,
+               se.interest, se.field_proficiency
+        FROM SkillEntry se
+        LEFT JOIN Person p ON se.email = p.email
+        ORDER BY se.email, se.skill_name, se.field_of_use
         """,
         _conn,
     )

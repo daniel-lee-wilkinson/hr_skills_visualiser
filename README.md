@@ -2,7 +2,7 @@
 
 # HR Skills Visualiser
 
-A small internal tool built around one idea: visible skills are usable skills. Colleagues self-assess across three dimensions (theoretical knowledge, practical experience, and interest in developing further). Management gets a company-wide view of expertise, skill gaps, and where knowledge is concentrated or at risk.
+A small internal tool built around one idea: visible skills are usable skills. Colleagues self-assess skills in the context of specific fields of use (e.g. Data Engineering, Process Safety), rating four dimensions per combination: theoretical knowledge, practical experience, interest in developing further, and proficiency within that field. Management gets a company-wide view of expertise, skill gaps, and where knowledge is concentrated or at risk.
 
 Built with Python, Streamlit, and SQLite.
 
@@ -17,7 +17,7 @@ The tool is split into two separate web apps to keep personal data away from tho
 | Employee app | 8501 | All staff — register, view own skills, log updates |
 | Management app | 8502 | HR / managers only — full team view, analytics, admin |
 
-Both apps share a single database. All users' data is stored in one place on the server.
+Both apps share a single database. All users' data is stored in one place on the server. Each skill entry is tied to a specific field of use, so the same skill can be rated independently in different contexts.
 
 ---
 
@@ -36,6 +36,9 @@ cd hr_skills_visualiser
 ```
 
 **2. Build and start**
+
+Open Docker Desktop and run:
+
 ```bash
 docker compose up --build -d
 ```
@@ -43,7 +46,7 @@ Both services start in the background. On the server itself:
 - Employee app → http://localhost:8501
 - Management app → http://localhost:8502
 
-Other machines on the same network use the server's IP or hostname instead of `localhost`, e.g. `http://192.168.1.50:8501`.
+Other machines on the same network use the server's IP or hostname instead of `localhost`, e.g. `http://192.168.113.2:8501`.
 
 **3. Tell your users their URLs** — that's all they need.
 
@@ -109,8 +112,11 @@ Outputs `company_skill_report.xlsx` and `.csv`.
 
 ### SQLite schema
 - `Person`: registered users
-- `SkillAssessment`: current ratings per person/skill
-- `SkillHistory`: full history with timestamps (used for the progression chart)
+- `Application`: fields of use (e.g. Data Engineering, Process Safety)
+- `SkillEntry`: current ratings per **(person, skill, field)** — all four dimensions (theoretical, practical, interest, field proficiency) stored together per context
+- `SkillEntryHistory`: full history with timestamps, same key — used for the progression chart
+
+Ratings are always field-specific. There is no field-agnostic skill row — rating Python in Data Engineering and Python in Reporting produces two separate records. The progression chart therefore always shows meaningful change over time within one consistent context.
 
 Concurrent access is handled via WAL (Write-Ahead Logging) mode, which allows multiple simultaneous readers without blocking writes.
 
