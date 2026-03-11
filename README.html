@@ -91,7 +91,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="hr-skills-visualiser" class="level1">
 <h1>HR Skills Visualiser</h1>
-<p>A small internal tool built around one idea: visible skills are usable skills. Colleagues self-assess across three dimensions (theoretical knowledge, practical experience, and interest in developing further). Management gets a company-wide view of expertise, skill gaps, and where knowledge is concentrated or at risk.</p>
+<p>A small internal tool built around one idea: visible skills are usable skills. Colleagues self-assess skills in the context of specific fields of use (e.g.&nbsp;Data Engineering, Process Safety), rating four dimensions per combination: theoretical knowledge, practical experience, interest in developing further, and proficiency within that field. Management gets a company-wide view of expertise, skill gaps, and where knowledge is concentrated or at risk.</p>
 <p>Built with Python, Streamlit, and SQLite.</p>
 <hr>
 <section id="the-two-apps" class="level2">
@@ -123,7 +123,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<p>Both apps share a single database. All users’ data is stored in one place on the server.</p>
+<p>Both apps share a single database. All users’ data is stored in one place on the server. Each skill entry is tied to a specific field of use, so the same skill can be rated independently in different contexts.</p>
 <hr>
 </section>
 <section id="running-it-choose-your-path" class="level2">
@@ -136,9 +136,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/daniel-lee-wilkinson/hr_skills_visualiser.git</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> hr_skills_visualiser</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>2. Build and start</strong></p>
+<p>Open Docker Desktop and run:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose up <span class="at">--build</span> <span class="at">-d</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Both services start in the background. On the server itself: - Employee app → http://localhost:8501 - Management app → http://localhost:8502</p>
-<p>Other machines on the same network use the server’s IP or hostname instead of <code>localhost</code>, e.g.&nbsp;<code>http://192.168.1.50:8501</code>.</p>
+<p>Other machines on the same network use the server’s IP or hostname instead of <code>localhost</code>, e.g.&nbsp;<code>http://192.168.113.2:8501</code>.</p>
 <p><strong>3. Tell your users their URLs</strong> — that’s all they need.</p>
 <section id="first-deploy-seeding-demo-data" class="level4">
 <h4 class="anchored" data-anchor-id="first-deploy-seeding-demo-data">First deploy — seeding demo data</h4>
@@ -190,9 +191,11 @@ run_management_app.cmd    # port 8502</code></pre>
 <h3 class="anchored" data-anchor-id="sqlite-schema">SQLite schema</h3>
 <ul>
 <li><code>Person</code>: registered users</li>
-<li><code>SkillAssessment</code>: current ratings per person/skill</li>
-<li><code>SkillHistory</code>: full history with timestamps (used for the progression chart)</li>
+<li><code>Application</code>: fields of use (e.g.&nbsp;Data Engineering, Process Safety)</li>
+<li><code>SkillEntry</code>: current ratings per <strong>(person, skill, field)</strong> — all four dimensions (theoretical, practical, interest, field proficiency) stored together per context</li>
+<li><code>SkillEntryHistory</code>: full history with timestamps, same key — used for the progression chart</li>
 </ul>
+<p>Ratings are always field-specific. There is no field-agnostic skill row — rating Python in Data Engineering and Python in Reporting produces two separate records. The progression chart therefore always shows meaningful change over time within one consistent context.</p>
 <p>Concurrent access is handled via WAL (Write-Ahead Logging) mode, which allows multiple simultaneous readers without blocking writes.</p>
 </section>
 <section id="standalone-reporting" class="level3">
